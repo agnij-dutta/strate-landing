@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -49,7 +50,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${fraunces.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
-      <body className="bg-ink text-parchment antialiased">{children}</body>
+      <body className="bg-ink text-parchment antialiased">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }

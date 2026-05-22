@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { track } from "@vercel/analytics";
 import { useId, useState } from "react";
 
 type State =
@@ -77,12 +78,17 @@ export default function WaitlistForm() {
         error?: string;
       };
       if (!res.ok || !data.ok) {
+        track("waitlist_error", { code: data.error ?? "unknown" });
         setState({
           kind: "error",
           message: humanizeError(data.error ?? "unknown"),
         });
         return;
       }
+      track("waitlist_signup", {
+        existed: !!data.existed,
+        hasStellar: !!cleanStellar,
+      });
       setState({
         kind: "ok",
         position: typeof data.position === "number" ? data.position : 0,
