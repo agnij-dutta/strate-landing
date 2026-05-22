@@ -94,14 +94,30 @@ function makeMemoryStore(): Store {
 
 let cached: Store | null = null;
 
+// Vercel's Upstash integration sometimes prepends the integration's slug to
+// every injected env var. If the user named their integration "KV_REST_API_URL"
+// (easy mistake when copying the canonical Vercel KV names), the actual var
+// names land as KV_REST_API_URL_KV_REST_API_URL etc. We accept every common
+// shape so the code does not care what the dashboard ended up calling them.
+function resolveCreds(): { url: string; token: string } | null {
+  const pairs: Array<[string, string]> = [
+    ["KV_REST_API_URL", "KV_REST_API_TOKEN"],
+    ["UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"],
+    ["KV_REST_API_URL_KV_REST_API_URL", "KV_REST_API_URL_KV_REST_API_TOKEN"],
+  ];
+  for (const [urlKey, tokenKey] of pairs) {
+    const url = process.env[urlKey];
+    const token = process.env[tokenKey];
+    if (url && token) return { url, token };
+  }
+  return null;
+}
+
 function getStore(): Store {
   if (cached) return cached;
-  const url =
-    process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-  const token =
-    process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (url && token) {
-    cached = makeUpstashStore(new Redis({ url, token }));
+  const creds = resolveCreds();
+  if (creds) {
+    cached = makeUpstashStore(new Redis(creds));
   } else {
     cached = makeMemoryStore();
   }
