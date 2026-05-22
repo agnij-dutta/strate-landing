@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import WaitlistForm from "./WaitlistForm";
 import Wordmark from "./Wordmark";
 
 type Props = { position: number };
@@ -107,24 +108,17 @@ export default function Footer({ position }: Props) {
             >
               Strate brings Pendle-style yield markets to Stellar. Built for RWAs. Built for composability. Built for you.
             </p>
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="#"
-                className="group inline-flex h-12 items-center justify-center gap-3 bg-foil px-7 font-mono text-[11px] uppercase tracking-[0.28em] text-ink transition-all duration-300 hover:bg-foil-deep"
-                style={{ borderRadius: 2 }}
-              >
-                <span>Launch App</span>
-                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" className="transition-transform duration-300 group-hover:translate-x-1">
-                  <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
-                </svg>
-              </Link>
-              <Link
-                href="#docs"
-                className="inline-flex h-12 items-center justify-center gap-3 border border-parchment/30 px-7 font-mono text-[11px] uppercase tracking-[0.28em] text-parchment/90 transition-all duration-300 hover:border-parchment/60"
-                style={{ borderRadius: 2 }}
-              >
-                Read Docs
-              </Link>
+            <div className="mt-10">
+              <WaitlistForm />
+              <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.32em] text-parchment/40">
+                Testnet Q3 2026 ·{" "}
+                <Link
+                  href="#docs"
+                  className="text-parchment/55 underline decoration-foil/40 underline-offset-4 transition-colors hover:text-foil"
+                >
+                  Read docs
+                </Link>
+              </p>
             </div>
           </motion.div>
         </div>

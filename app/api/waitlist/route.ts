@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import { getWaitlistCount, signupWaitlist } from "@/lib/waitlist";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 type Body = {
   email?: string;
@@ -6,6 +10,7 @@ type Body = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const STELLAR_RE = /^G[A-Z2-7]{55}$/;
 
 export async function POST(req: Request) {
   let body: Body = {};
@@ -24,20 +29,50 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-  if (stellar && !/^G[A-Z2-7]{55}$/.test(stellar)) {
-    // Stellar public keys: 56 chars, base32, starting with 'G'
+  if (email.length > 254) {
+    return NextResponse.json(
+      { ok: false, error: "email_too_long" },
+      { status: 400 }
+    );
+  }
+  if (stellar && !STELLAR_RE.test(stellar)) {
     return NextResponse.json(
       { ok: false, error: "invalid_stellar_address" },
       { status: 400 }
     );
   }
 
-  // TODO: wire to KV / Postgres / Resend in production.
-  console.log("[waitlist] signup", {
-    email,
-    stellar,
-    ts: new Date().toISOString(),
-  });
+  try {
+    const result = await signupWaitlist(email, stellar);
+    if (!result.ok) {
+      return NextResponse.json(
+        { ok: false, error: result.error },
+        { status: 500 }
+      );
+    }
+    return NextResponse.json({
+      ok: true,
+      position: result.publicPosition ?? result.position,
+      existed: result.existed,
+    });
+  } catch (err) {
+    console.error("[waitlist] signup failed", err);
+    return NextResponse.json(
+      { ok: false, error: "store_unavailable" },
+      { status: 500 }
+    );
+  }
+}
 
-  return NextResponse.json({ ok: true });
+export async function GET() {
+  try {
+    const count = await getWaitlistCount();
+    return NextResponse.json({ ok: true, count });
+  } catch (err) {
+    console.error("[waitlist] count failed", err);
+    return NextResponse.json(
+      { ok: false, error: "store_unavailable" },
+      { status: 500 }
+    );
+  }
 }

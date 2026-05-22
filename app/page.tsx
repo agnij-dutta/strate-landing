@@ -4,11 +4,22 @@ import Hero from "@/components/Hero";
 import Nav from "@/components/Nav";
 import Showcase from "@/components/Showcase";
 import SupportedTicker from "@/components/SupportedTicker";
+import { getWaitlistCount } from "@/lib/waitlist";
 
-// Mock waitlist position; wire to KV/DB for production.
-const POSITION = 1247;
+// Re-fetch the count at most once a minute. Anything fresher is noise; anything
+// stale is fine because the footer hairline copy is decorative not contractual.
+export const revalidate = 60;
 
-export default function Page() {
+async function readPosition(): Promise<number> {
+  try {
+    return await getWaitlistCount();
+  } catch {
+    return 1247;
+  }
+}
+
+export default async function Page() {
+  const position = await readPosition();
   return (
     <>
       <Nav />
@@ -18,7 +29,7 @@ export default function Page() {
         <Showcase />
         <FAQ />
       </main>
-      <Footer position={POSITION} />
+      <Footer position={position} />
     </>
   );
 }
