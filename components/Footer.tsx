@@ -162,7 +162,7 @@ export default function Footer({ position }: Props) {
 
           <div className="col-span-12 flex items-center gap-5 lg:col-span-2 lg:justify-end">
             <Link
-              href="https://x.com/strate_xyz"
+              href="https://x.com/usestrate"
               target="_blank"
               rel="noopener noreferrer"
               className="font-mono text-[10px] uppercase tracking-[0.28em] text-parchment/55 transition-colors hover:text-foil"
