@@ -111,7 +111,7 @@ export default function Footer({ position }: Props) {
             <div className="mt-10">
               <WaitlistForm />
               <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.32em] text-parchment/40">
-                Testnet Q3 2026 ·{" "}
+                Mainnet beta · TVL-capped ·{" "}
                 <Link
                   href="#docs"
                   className="text-parchment/55 underline decoration-foil/40 underline-offset-4 transition-colors hover:text-foil"
@@ -133,7 +133,7 @@ export default function Footer({ position }: Props) {
         >
           <span aria-hidden="true" className="block h-1.5 w-1.5 bg-foil" />
           <span className="num font-mono text-[10px] uppercase tracking-[0.28em] text-parchment/55">
-            {position.toLocaleString("en-US")} on the waitlist · audit in progress · non-custodial
+            {position.toLocaleString("en-US")} on the waitlist · mainnet live in beta · audit in progress · non-custodial
           </span>
         </motion.div>
 
@@ -154,7 +154,7 @@ export default function Footer({ position }: Props) {
             className="col-span-12 max-w-prose text-[13px] leading-[1.7] text-parchment/45 lg:col-span-5"
             style={{ fontFamily: "var(--font-fraunces), serif" }}
           >
-            Strate is non-custodial software in pre-mainnet. Smart contracts carry risk.
+            Strate is non-custodial software in unaudited mainnet beta. Smart contracts carry risk.
             Yields shown are observed, not guaranteed. Audit by{" "}
             <span className="text-parchment/65">OtterSec</span> in progress; report
             will be published before mainnet.

@@ -160,7 +160,7 @@ export async function GET(req: NextRequest) {
                 opacity: 0.45,
               }}
             >
-              Mainnet · Q3 2026
+              Mainnet beta · TVL-capped
             </div>
           </div>
         </div>

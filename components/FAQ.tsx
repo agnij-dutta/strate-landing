@@ -19,8 +19,8 @@ const faqs: QA[] = [
     a: "Strate is non-custodial. The underlying RWA sits in the issuer wrapper it already uses on Stellar. The Strate contract holds the wrapper and mints PT and YT against it. Redeem at maturity flows directly from the wrapper, not from us.",
   },
   {
-    q: "When is mainnet?",
-    a: "Q3 2026, gated on audit. Waitlist members get first access, and Stellar address pre-registration lets us pre-fund the priority pool. You will receive a launch window two weeks before mainnet.",
+    q: "Is mainnet live?",
+    a: "Yes — Strate ships an unaudited mainnet beta with a hard 50,000-unit TVL cap per market. XLM and USDC markets launched first, via the Blend V2 Fixed pool. The OtterSec audit is in flight; the report will be published before we raise the cap or add new markets.",
   },
 ];
 
