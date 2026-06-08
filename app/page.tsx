@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import Nav from "@/components/Nav";
 import Showcase from "@/components/Showcase";
 import SupportedTicker from "@/components/SupportedTicker";
+import WhitepaperBand from "@/components/WhitepaperBand";
 import { getWaitlistCount } from "@/lib/waitlist";
 
 // Re-fetch the count at most once a minute. Anything fresher is noise; anything
@@ -27,6 +28,7 @@ export default async function Page() {
         <Hero />
         <SupportedTicker />
         <Showcase />
+        <WhitepaperBand />
         <FAQ />
       </main>
       <Footer position={position} />

@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import Wordmark from "./Wordmark";
 
 const links = [
-  { label: "Protocol", href: "#protocol" },
-  { label: "Markets",  href: "#markets" },
-  { label: "Docs",     href: "#docs" },
+  { label: "Protocol",   href: "#protocol" },
+  { label: "Markets",    href: "#markets" },
+  { label: "Whitepaper", href: "/whitepaper" },
 ];
 
 /**

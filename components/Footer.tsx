@@ -113,10 +113,10 @@ export default function Footer({ position }: Props) {
               <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.32em] text-parchment/40">
                 Mainnet beta · TVL-capped ·{" "}
                 <Link
-                  href="#docs"
+                  href="/whitepaper"
                   className="text-parchment/55 underline decoration-foil/40 underline-offset-4 transition-colors hover:text-foil"
                 >
-                  Read docs
+                  Read whitepaper
                 </Link>
               </p>
             </div>
