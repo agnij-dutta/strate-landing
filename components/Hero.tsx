@@ -22,7 +22,7 @@ export default function Hero() {
   return (
     <section
       ref={container}
-      className="group relative mx-4 mb-16 mt-24 overflow-hidden bg-ink sm:mx-6 sm:mt-28 lg:mx-8 lg:mb-20 lg:mt-28"
+      className="group relative mx-4 mb-6 mt-20 overflow-hidden bg-ink sm:mx-6 sm:mt-24 lg:mx-8 lg:mb-8 lg:mt-24"
       // Triple-clip strategy:
       //  1. border-radius for browsers that honor it on stacking contexts
       //  2. clip-path inset+round as a forced geometric clip
@@ -64,7 +64,7 @@ export default function Hero() {
       {/* === FOREGROUND CONTENT ===
           Asymmetric padding: more at top, less at bottom so the headline
           sits closer to the section's bottom edge (no large empty band). */}
-      <div className="relative z-10 flex h-[78vh] min-h-[560px] w-full flex-col px-7 pb-8 pt-7 sm:px-10 sm:pb-10 sm:pt-10 lg:px-14 lg:pb-10 lg:pt-14">
+      <div className="relative z-10 flex h-[62vh] min-h-[460px] w-full flex-col px-7 pb-8 pt-7 sm:px-10 sm:pb-10 sm:pt-10 lg:px-14 lg:pb-10 lg:pt-14">
         {/* Top labels */}
         <div className="flex items-start justify-between gap-6 mix-blend-difference text-white">
           <motion.p

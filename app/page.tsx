@@ -27,8 +27,8 @@ export default async function Page() {
       <Nav />
       <main className="relative">
         <Hero />
-        <MarketWidget />
         <SupportedTicker />
+        <MarketWidget />
         <Showcase />
         <WhitepaperBand />
         <FAQ />
