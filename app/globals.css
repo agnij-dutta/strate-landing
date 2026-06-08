@@ -24,7 +24,13 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  /* `clip` (not `hidden`) so horizontal overflow is still contained but
+     no scroll container is established. `overflow-x: hidden` on the root
+     turns the body into a scroll context, which makes every descendant
+     `position: sticky` resolve against it and silently stop sticking
+     (the whitepaper Contents rail). `clip` keeps the guard without that
+     side effect. */
+  overflow-x: clip;
 }
 
 /* Persistent atmospheric overlays */
