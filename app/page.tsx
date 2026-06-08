@@ -1,6 +1,7 @@
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
+import MarketWidget from "@/components/MarketWidget";
 import Nav from "@/components/Nav";
 import Showcase from "@/components/Showcase";
 import SupportedTicker from "@/components/SupportedTicker";
@@ -26,6 +27,7 @@ export default async function Page() {
       <Nav />
       <main className="relative">
         <Hero />
+        <MarketWidget />
         <SupportedTicker />
         <Showcase />
         <WhitepaperBand />
