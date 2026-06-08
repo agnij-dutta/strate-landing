@@ -1,51 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { TOC } from "./toc";
+import { useActiveSection } from "./useActiveSection";
 
 /**
- * Sticky left rail. Mirrors the bond-certificate "Contents" block:
- * a foil-ruled header, then a numbered index that highlights the
- * section currently in view via an IntersectionObserver scroll-spy.
- *
- * Reading-progress hairline at the very top tracks scroll depth.
+ * Sticky left rail (desktop). Mirrors the bond-certificate "Contents"
+ * block: a foil-ruled header, then a numbered index that highlights the
+ * section currently in view, plus a reading-progress hairline. Scroll-
+ * spy state is shared with the mobile bar via useActiveSection.
  */
 export default function TableOfContents() {
-  const [activeId, setActiveId] = useState<string>(TOC[0]?.id ?? "");
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // The topmost section intersecting the upper third of the
-        // viewport wins. Sorting by boundingClientRect.top keeps the
-        // active row stable when several sections are on screen.
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible[0]) setActiveId(visible[0].target.id);
-      },
-      // Trigger band sits in the top third of the viewport.
-      { rootMargin: "-12% 0px -70% 0px", threshold: 0 },
-    );
-
-    TOC.forEach(({ id }) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => {
-      const h = document.documentElement;
-      const max = h.scrollHeight - h.clientHeight;
-      setProgress(max > 0 ? Math.min(1, h.scrollTop / max) : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const { activeId, progress } = useActiveSection();
 
   return (
     <nav

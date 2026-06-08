@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Wordmark from "@/components/Wordmark";
+import MobileToc from "@/components/whitepaper/MobileToc";
 import TableOfContents from "@/components/whitepaper/TableOfContents";
 import {
   Callout,
@@ -126,6 +127,10 @@ export default function WhitepaperPage() {
           </aside>
 
           <article className="col-span-12 max-w-[68ch] lg:col-span-9 lg:col-start-4">
+            {/* Mobile contents bar (sticky, collapsible). Hidden at lg
+                where the left rail takes over. */}
+            <MobileToc />
+
             {/* Abstract */}
             <PartHeading id="abstract" kicker="Abstract" title="Abstract" />
             <P dropcap>
