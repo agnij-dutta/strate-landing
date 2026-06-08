@@ -7,6 +7,7 @@ import {
   CodeBlock,
   DataTable,
   Em,
+  Equation,
   List,
   Mono,
   P,
@@ -223,14 +224,23 @@ export default function WhitepaperPage() {
             <div className="mt-24">
               <PartHeading id="part-2" kicker="Part II" title="The Mechanism" />
             </div>
-            <SubHeading>4. The split</SubHeading>
+            <SubHeading>4. The split, and its invariant</SubHeading>
             <P>
-              Deposit one unit of underlying. Strate mints you one PT and one
-              YT. The invariant is simple and holds at all times: one PT plus
-              one YT, redeemed together before maturity, returns exactly one
-              unit of the underlying. After maturity, PT alone redeems one
-              unit, and YT is spent.
+              Write <Mono>U</Mono> for one unit of the underlying. A mint of{" "}
+              <Mono>a</Mono> units issues <Mono>a</Mono> PT and <Mono>a</Mono>{" "}
+              YT. The conservation law the contract enforces at every block is
+              that principal and yield, recombined, are exactly whole again.
             </P>
+            <Equation label="4.1">
+              1 PT &nbsp;+&nbsp; 1 YT &nbsp;=&nbsp; 1 U &nbsp;&nbsp;(for t &lt; T)
+            </Equation>
+            <P>
+              At maturity <Mono>T</Mono> the yield leg is spent and the
+              principal leg redeems on its own.
+            </P>
+            <Equation label="4.2">
+              1 PT &nbsp;=&nbsp; 1 U &nbsp;&nbsp;(for t &ge; T)
+            </Equation>
             <List
               items={[
                 <>
@@ -246,6 +256,13 @@ export default function WhitepaperPage() {
                 </>,
               ]}
             />
+            <P>
+              The first deposit into an empty market mints a small, permanently
+              locked quantity of PT and YT to the contract itself, the{" "}
+              <Em>dead-shares</Em> lock. This makes the share price impossible
+              to inflate by donating underlying ahead of the first real
+              depositor, the classic empty-vault attack.
+            </P>
 
             <SubHeading>5. The protocol surface</SubHeading>
             <P>
@@ -258,37 +275,136 @@ ys.claim_yield()       // drain accrued YT yield, paid in underlying`}</CodeBloc
             <P>
               After maturity, a fourth path opens: <Mono>redeem_pt</Mono>,
               which burns PT alone for one unit of underlying. Everything else
-              is the AMM and the Oracle that price these tokens against the
-              underlying.
+              is the accrual accounting, the AMM, and the Oracle.
             </P>
 
-            <SubHeading>6. The AMM</SubHeading>
+            <SubHeading>6. Yield accrual: the scaled-index method</SubHeading>
             <P>
-              PT and YT trade against the underlying on a logarithmic
-              automated market maker, ported from Pendle V1. The curve is
-              time-aware: as maturity approaches, the relationship between PT
-              and the underlying narrows, because PT is converging on par. The
-              math lives in the <Mono>strate-math</Mono> crate, a WAD-scaled
-              fixed-point library with a 10,000-case property-test sweep on
-              every build.
+              Yield does not arrive as discrete payments. It accrues
+              continuously inside Blend{"'"}s exchange rate. Strate tracks it
+              with a single monotonically increasing number, the{" "}
+              <Em>global yield index</Em> <Mono>I</Mono>, scaled to WAD (1e18)
+              and initialized at <Mono>1.0</Mono>. The index is the ratio of
+              the current Blend rate to the rate captured when the market
+              first synced.
+            </P>
+            <Equation label="6.1">
+              I(t) &nbsp;=&nbsp; b_rate(t) / b_rate(t&#8320;)
+            </Equation>
+            <P>
+              A holder of <Mono>b</Mono> YT carries a snapshot{" "}
+              <Mono>I_user</Mono>, the value of the index the last time their
+              balance was touched. The yield they have earned but not yet
+              drained is the balance times the distance the index has traveled
+              since that snapshot.
+            </P>
+            <Equation label="6.2">
+              accrued &nbsp;+=&nbsp; b &middot; (I_global &minus; I_user) / WAD
+            </Equation>
+            <P>
+              On any balance-changing action the contract settles the holder at
+              the current index, adds the earned amount to their drained-yield
+              bucket, then advances their snapshot:{" "}
+              <Mono>I_user := I_global</Mono>. Because settlement always happens
+              before a balance moves, transfers split accrued yield correctly
+              between sender and recipient with no shared mutable state. This is
+              the same constant-per-share accounting that lending protocols use
+              for interest, applied to a yield claim.
+            </P>
+            <P>
+              Two invariants guard the index. It is{" "}
+              <Strong>monotonic</Strong>: a sync that would lower <Mono>I</Mono>{" "}
+              is rejected, so accrued yield can never decrease. And it is{" "}
+              <Strong>delta-capped</Strong>: a single sync may raise the index
+              by at most a configured fraction, so a corrupted upstream rate
+              cannot mint unbounded yield in one step.
+            </P>
+            <Equation label="6.3">
+              0 &nbsp;&le;&nbsp; (I_new &minus; I_old) / I_old &nbsp;&le;&nbsp;
+              &delta;_max
+            </Equation>
+
+            <SubHeading>7. The AMM: a time-weighted curve</SubHeading>
+            <P>
+              PT and YT trade against the underlying on a weighted constant-
+              function market maker in the Pendle V1 lineage. With input
+              reserve <Mono>x_in</Mono>, output reserve <Mono>x_out</Mono>,
+              weights <Mono>w_in</Mono> and <Mono>w_out</Mono>, and a fee{" "}
+              <Mono>&phi;</Mono> taken from the input, a trade of{" "}
+              <Mono>dx_in</Mono> returns
+            </P>
+            <Equation label="7.1">
+              dx_out &nbsp;=&nbsp; x_out &middot; ( 1 &minus; ( x_in / ( x_in +
+              (1&minus;&phi;)&middot;dx_in ) ) ^ (w_in / w_out) )
+            </Equation>
+            <P>
+              The weights are not fixed. Before every trade they are recomputed
+              from the time remaining and the pool{"'"}s spot price. Let{" "}
+              <Mono>t = &tau;/T</Mono> be the fraction of the tenor remaining,
+              and let the spot price of PT in underlying be{" "}
+              <Mono>p = s &middot; (x_U / x_PT)</Mono>, where{" "}
+              <Mono>s</Mono> is the market{"'"}s immutable scalar root. The PT
+              weight is the ratio of their logarithms.
+            </P>
+            <Equation label="7.2">
+              w_PT &nbsp;=&nbsp; ln(t) / ln(p), &nbsp;&nbsp; w_U &nbsp;=&nbsp; 1
+              &minus; w_PT
+            </Equation>
+            <P>
+              For a healthy pool both <Mono>t</Mono> and <Mono>p</Mono> are
+              below one, so both logarithms are negative and the ratio is a
+              clean fraction in <Mono>(0, 1)</Mono>. At launch{" "}
+              <Mono>t &rarr; 1</Mono>, so <Mono>ln(t) &rarr; 0</Mono> and the PT
+              weight starts near zero. As maturity approaches{" "}
+              <Mono>ln(t) &rarr; &minus;&infin;</Mono> and the weight tilts
+              toward PT, which is the curve expressing that PT must converge on
+              par. When weights are equal the formula collapses exactly to the
+              constant-product form <Mono>dx_out = x_out &middot; dx_in / (x_in
+              + dx_in)</Mono>.
             </P>
             <Callout label="Design note">
-              The V1 curve has an asymptote in the final days before maturity.
-              We added a fourteen-day no-trade window that pauses liquidity
-              actions near the boundary, so the asymptote is never hit. The
-              richer V2 curve is deferred until market depth justifies its gas
-              overhead.
+              The weight ratio diverges as <Mono>t &rarr; 0</Mono>. A fourteen-
+              day no-trade window freezes liquidity actions before the
+              asymptote is reached, and the weight input is clamped into the
+              region where the underlying <Mono>ln</Mono> series converges
+              fastest. The richer Pendle V2 curve is deferred until market
+              depth justifies its gas overhead.
             </Callout>
 
-            <SubHeading>7. The Oracle</SubHeading>
+            <SubHeading>8. Pricing: discount and implied APY</SubHeading>
             <P>
-              Yield is real only if its source is honest. Strate{"'"}s Oracle
-              wraps Blend{"'"}s exchange rate, the <Mono>b_rate</Mono>, with a
-              time-weighted average and a per-sync delta cap. A single-block
-              rate spike cannot move the protocol{"'"}s view of yield, and a
-              rate that jumps more than the configured ceiling in one sync is
-              rejected. The Oracle reads only the wrapper rate from the issuer
-              contract. There is no external price feed to manipulate.
+              The PT price <Mono>P</Mono> is whatever the curve quotes, a
+              number below one. The discount to par is the fixed return a buyer
+              locks in by holding to maturity, and annualizing it over the
+              remaining tenor <Mono>&tau;</Mono> in years gives the market{"'"}s
+              implied rate, which the dApp displays as the implied APY.
+            </P>
+            <Equation label="8.1">
+              implied APY &nbsp;=&nbsp; ( 1 / P ) ^ ( 1 / &tau; ) &nbsp;&minus;&nbsp; 1
+            </Equation>
+            <P>
+              PT and YT prices are tied by the conservation law of equation
+              4.1: since one of each redeems for one underlying before
+              maturity, their prices in underlying terms sum to the price of
+              the underlying itself. The YT price is therefore the residual,{" "}
+              <Mono>P_YT = 1 &minus; P_PT</Mono>, which is exactly how the dApp
+              derives the YT quote it shows.
+            </P>
+
+            <SubHeading>9. The Oracle</SubHeading>
+            <P>
+              The accrual of section 6 is only as honest as the rate that feeds
+              it. Strate{"'"}s Oracle wraps Blend{"'"}s exchange rate, the{" "}
+              <Mono>b_rate</Mono>, in a time-weighted average over a ring buffer
+              of observations, then applies the delta cap of equation 6.3
+              before the rate is allowed to move the index. A single-block rate
+              spike cannot move the average, a stale buffer is rejected, and an
+              out-of-bound jump is refused. The Oracle reads only the wrapper
+              rate from the issuer contract. There is no external price feed to
+              manipulate. The whole library, <Mono>exp</Mono>, <Mono>ln</Mono>,
+              and the WAD fixed-point arithmetic, lives in the{" "}
+              <Mono>strate-math</Mono> crate under a 10,000-case property-test
+              sweep on every build.
             </P>
 
             {/* Part III */}

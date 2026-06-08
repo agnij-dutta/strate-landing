@@ -105,6 +105,27 @@ export function List({ items }: { items: ReactNode[] }) {
   );
 }
 
+export function Equation({
+  children,
+  label,
+}: {
+  children: ReactNode;
+  label?: string;
+}) {
+  return (
+    <figure className="mt-6 flex items-center justify-between gap-6 rounded-[3px] border border-foil/20 bg-ink-deep/60 px-6 py-5">
+      <div className="overflow-x-auto font-mono text-[15px] leading-[1.8] text-parchment/90">
+        {children}
+      </div>
+      {label ? (
+        <figcaption className="shrink-0 font-mono text-[10px] tabular-nums tracking-[0.2em] text-foil/55">
+          {label}
+        </figcaption>
+      ) : null}
+    </figure>
+  );
+}
+
 export function CodeBlock({ children }: { children: ReactNode }) {
   return (
     <pre className="mt-6 overflow-x-auto rounded-[3px] border border-parchment/10 bg-ink-deep/80 p-5 font-mono text-[13px] leading-[1.7] text-parchment/85">
